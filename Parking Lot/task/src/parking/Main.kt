@@ -1,35 +1,42 @@
 package parking
 
+import kotlin.system.exitProcess
 
 class ParkingLot {
-    private val regexParkingPattern = """(?<action>park)\s(?<regNum>[A-Za-z0-9-\S]+)\s(?<carColor>[A-Za-z]{2,})""".toRegex()
-    private val regexLeavingPattern = """(?<action>[l|L]eave)\s(?<parkingSpce>\d)""".toRegex()
-    private val parkingLot = mutableListOf(Car("KA-01-HH-2024", "Black"))
+    private val regexParkingPattern = """(?i)park\s(?<regNum>[A-Za-z0-9-]+)\s(?<carColor>[A-Za-z]+)""".toRegex()
+    private val regexLeavingPattern = """(?i)leave\s(?<parkingSpace>\d{1,2})""".toRegex()
+    private val parkingLot = MutableList<Car?>(20) { null }
 
     init {
-        val userInput = readln()
-        when {
-            userInput.matches(regexParkingPattern) -> {
-                val (action, regNum, carColor) = regexParkingPattern.find(userInput)!!.destructured
-                parkingLot.add(Car(regNum, carColor))
-                println("$carColor car parked in spot 2.")
-            }
+        do {
+            val userInput = readln()
+            when {
+                userInput.matches(regexParkingPattern) -> {
+                    val (regNum, carColor) = regexParkingPattern.find(userInput)!!.destructured
+                    val availableSpot = parkingLot.indexOfFirst { it == null }
 
-            userInput.matches(regexLeavingPattern) -> {
-                val (action, parkingSpace) = regexLeavingPattern.find(userInput)!!.destructured
-                val index = parkingSpace.toInt() - 1
-                try {
-                    parkingLot.removeAt(index)
-                    println("Spot $parkingSpace is free.")
-                } catch (e: Exception) {
-                    println("There is no car in spot $parkingSpace.")
-
+                    if (availableSpot != -1) {
+                        parkingLot[availableSpot] = Car(regNum, carColor)
+                        println("$carColor car parked in spot ${availableSpot + 1}.")
+                    } else {
+                        println("Sorry, the parking lot is full.")
+                    }
                 }
 
+                userInput.matches(regexLeavingPattern) -> {
+                    val (parkingSpace) = regexLeavingPattern.find(userInput)!!.destructured
+                    val index = parkingSpace.toInt() - 1
+                    if (index in parkingLot.indices && parkingLot[index] != null) {
+                        parkingLot[index] = null
+                        println("Spot $parkingSpace is free.")
+                    } else {
+                        println("There is no car in spot $parkingSpace.")
+                    }
+                }
+
+                userInput.equals("exit", true) -> exitProcess(0)
             }
-
-
-        }
+        } while (true)
     }
 
     inner class Car(val regNum: String, val carColor: String)
@@ -38,5 +45,4 @@ class ParkingLot {
 
 fun main() {
     ParkingLot()
-
 }
