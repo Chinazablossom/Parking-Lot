@@ -7,6 +7,9 @@ class ParkingLot {
     private val regexParkingPattern = """(?i)park\s(?<regNum>[A-Za-z0-9-]+)\s(?<carColor>[A-Za-z]+)""".toRegex()
     private val regexLeavingPattern = """(?i)leave\s(?<parkingSpace>\d{1,2})""".toRegex()
     private val regexStatusPattern = """(?i)status""".toRegex()
+    private val regexRegByColorPattern = """(?i)reg_by_color\s(?<carColor>[A-Za-z]+)""".toRegex()
+    private val regexSpotByColorPattern = """(?i)spot_by_color\s(?<carColor>[A-Za-z]+)""".toRegex()
+    private val regexSpotByRegPattern = """(?i)spot_by_reg\s(?<regNum>[A-Za-z0-9-]+)""".toRegex()
     private var parkingLot: MutableList<Car?> = mutableListOf()
     private var lotCreated = false
 
@@ -67,6 +70,56 @@ class ParkingLot {
                             println("Parking lot is empty.")
                         } else {
                             occupiedSpots.forEach { println(it) }
+                        }
+                    } else {
+                        println("Sorry, a parking lot has not been created.")
+                    }
+                }
+
+                userInput.matches(regexRegByColorPattern) -> {
+                    if (lotCreated) {
+                        val (carColor) = regexRegByColorPattern.find(userInput)!!.destructured
+                        val regNums = parkingLot.filter { it?.carColor?.equals(carColor, true) == true }
+                            .map { it!!.regNum }
+
+                        if (regNums.isEmpty()) {
+                            println("No cars with color $carColor were found.")
+                        } else {
+                            println(regNums.joinToString(", "))
+                        }
+                    } else {
+                        println("Sorry, a parking lot has not been created.")
+                    }
+                }
+
+                userInput.matches(regexSpotByColorPattern) -> {
+                    if (lotCreated) {
+                        val (carColor) = regexSpotByColorPattern.find(userInput)!!.destructured
+                        val spots = parkingLot.withIndex()
+                            .filter { it.value?.carColor?.equals(carColor, true) == true }
+                            .map { it.index + 1 }
+
+                        if (spots.isEmpty()) {
+                            println("No cars with color $carColor were found.")
+                        } else {
+                            println(spots.joinToString(", "))
+                        }
+                    } else {
+                        println("Sorry, a parking lot has not been created.")
+                    }
+                }
+
+                userInput.matches(regexSpotByRegPattern) -> {
+                    if (lotCreated) {
+                        val (regNum) = regexSpotByRegPattern.find(userInput)!!.destructured
+                        val spot = parkingLot.withIndex()
+                            .find { it.value?.regNum?.equals(regNum, true) == true }
+                            ?.index?.plus(1)
+
+                        if (spot == null) {
+                            println("No cars with registration number $regNum were found.")
+                        } else {
+                            println(spot)
                         }
                     } else {
                         println("Sorry, a parking lot has not been created.")
